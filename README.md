@@ -17,6 +17,9 @@ Run the application using the "run npm serve", add articles by entering plain te
 **Architecture**   
 Applicaiton is a SPA multi-component application followingn organization layed out by the Vue.js CLI.
 
+**Installation**   
+- In VS Code get required modules and run using the npm serve on URL http://localhost:8080/
+
 **TODO**   
 - HTML editor for editing article instead of textarea    
 - full CRUD controls for articles   
