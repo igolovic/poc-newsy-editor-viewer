@@ -16,3 +16,8 @@ Run the application using the "run npm serve", add articles by entering plain te
    
 **Architecture**   
 Applicaiton is a SPA multi-component application followingn organization layed out by the Vue.js CLI.
+
+**TODO**   
+- HTML editor for editing article instead of textarea    
+- full CRUD for articles (only creation currently exists)    
+- full CRUD for users (only creation currently exists)   
