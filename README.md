@@ -19,5 +19,5 @@ Applicaiton is a SPA multi-component application followingn organization layed o
 
 **TODO**   
 - HTML editor for editing article instead of textarea    
-- full CRUD for articles (only creation currently exists)    
-- full CRUD for users (only creation currently exists)   
+- full CRUD controls for articles (only creation currently exists)    
+- full CRUD controls for users (only creation currently exists)   
