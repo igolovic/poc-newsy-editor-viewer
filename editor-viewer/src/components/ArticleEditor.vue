@@ -17,7 +17,7 @@
       </b-card>
     </b-row>
     <b-row class="float-right">
-      <b-button id="addNewArticle" @click="createNewArticle">Create new article</b-button>
+      <b-button id="addNewArticle" @click="createNewArticle">Create article</b-button>
     </b-row>
   </div>
 </template>

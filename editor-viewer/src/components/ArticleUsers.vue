@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-form-group label="Select users">
+    <b-form-group label="Please select at least one author">
       <b-form-checkbox-group
         v-model="selectedUsers"
         :options="users"
@@ -25,7 +25,7 @@ export default {
   },
   methods: {
     clearControls() {
-      this.editableContent = "";
+      this.selectedUsers = [];
     }
   },
   watch: {
