@@ -1,16 +1,23 @@
 <template>
-  <b-container>
-    <b-row class="w-100">
-      <label id="lblUser"
-        ><i
-          ><b>{{ userText }}</b></i
-        ></label
-      >
+  <b-container id="mainContainer">
+    <b-row class="w-100 float-right">
+        <b-button class="btn login" @click="login" v-if="!isLoggedIn">Login</b-button>
+        <label v-if="!isLoggedIn">Log into the editor-viewer application</label>
+
+        <b-button class="btn login" @click="logout" v-if="isLoggedIn">Logout</b-button>
+        <label v-if="isLoggedIn">{{ userText }}</label>
+
     </b-row>
-    <b-row class="w-100"><ArticleUsers :users="users" ref="articleUserComp" /></b-row>
+    <b-row class="w-100" v-if="isLoggedIn"
+      ><ArticleUsers :users="users" ref="articleUserComp"
+    /></b-row>
     <b-row class="w-100">
-      <b-col><ArticleEditor :content="selectedArticleContent" ref="articleEditorComp" /></b-col>
-      <b-col>
+      <b-col v-if="isLoggedIn"
+        ><ArticleEditor
+          :content="selectedArticleContent"
+          ref="articleEditorComp"
+      /></b-col>
+      <b-col v-if="isLoggedIn">
         <ArticleViewer
           v-for="(item, key, index) in articles"
           :item="item"
@@ -26,7 +33,12 @@
 import ArticleEditor from "./components/ArticleEditor.vue";
 import ArticleUsers from "./components/ArticleUsers.vue";
 import ArticleViewer from "./components/ArticleViewer.vue";
+
 import axios from "axios";
+
+import { UserManager, WebStorageStateStore } from "oidc-client";
+
+const authorizationHeader = "Authorization";
 
 export default {
   name: "App",
@@ -40,6 +52,21 @@ export default {
       userId: "e95fa28b-1ed1-4a1b-a981-a4e608ca7cda",
       userFirstName: "John",
       userUserName: "jd",
+      userManager: Object,
+      isLoggedIn: false,
+      accessTokenExpired: false,
+      settings: {
+        userStore: new WebStorageStateStore({ store: window.localStorage }),
+        authority: "http://host.docker.internal:44342/",
+        client_id: "newsy-editor-viewer-application",
+        redirect_uri: "http://localhost:8080/callback.html",
+        automaticSilentRenew: true,
+        silent_redirect_uri: "http://localhost:8080/silent-renew.html",
+        response_type: "code",
+        scope: "newsy-api.read newsy-api.write",
+        post_logout_redirect_uri: "http://localhost:8080/",
+        filterProtocolClaims: true,
+      },
     };
   },
   components: {
@@ -47,17 +74,32 @@ export default {
     ArticleUsers,
     ArticleViewer,
   },
+  mounted() {
+    this.userManager.getUser().then((user) => {
+      if (user) {
+        this.userUserName = user.name;
+        this.accessTokenExpired = user.expired;
+
+        this.isLoggedIn = user !== null && !user.expired;
+        if (this.isLoggedIn) {
+          this.getAuthors();
+          this.getArticles();
+        }
+      }
+    });
+  },
   created: function () {
-    this.getAuthors();
-    this.getArticles();
+    console.log("created");
+    this.userManager = new UserManager(this.settings);
   },
   computed: {
     userText: function () {
-      return this.userFirstName + " (" + this.userUserName + " - " + this.userId + ")";
+      return (
+        this.userFirstName + " " + this.userUserName 
+      );
     },
   },
-  watch: {
-  },
+  watch: {},
   methods: {
     uuidv4() {
       return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
@@ -69,45 +111,57 @@ export default {
     },
 
     getArticles() {
-      axios
-        .get("https://localhost:5001/Article")
-        .then((res) => {
-          this.articles = res.data;
-        })
-        .catch(function (error) {
-          console.log("[newsy-editor-viewer] ERROR");
-          if (error.response) {
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
-          } else if (error.request) {
-            console.log(error.request);
-          } else {
-            console.log(error.message);
-          }
-          console.log(error.config);
-        });
+      this.getAccessToken().then((userToken) => {
+        axios.defaults.headers.common[
+          authorizationHeader
+        ] = `Bearer ${userToken}`;
+
+        axios
+          .get("https://localhost:5001/Article")
+          .then((res) => {
+            this.articles = res.data;
+          })
+          .catch(function (error) {
+            console.log("[newsy-editor-viewer] ERROR");
+            if (error.response) {
+              console.log(error.response.data);
+              console.log(error.response.status);
+              console.log(error.response.headers);
+            } else if (error.request) {
+              console.log(error.request);
+            } else {
+              console.log(error.message);
+            }
+            console.log(error.config);
+          });
+      });
     },
 
     getAuthors() {
-      axios
-        .get("https://localhost:5001/User")
-        .then((res) => {
-          this.users = res.data;
-        })
-        .catch(function (error) {
-          console.log("[newsy-editor-viewer] ERROR");
-          if (error.response) {
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
-          } else if (error.request) {
-            console.log(error.request);
-          } else {
-            console.log(error.message);
-          }
-          console.log(error.config);
-        });
+      this.getAccessToken().then((userToken) => {
+        axios.defaults.headers.common[
+          authorizationHeader
+        ] = `Bearer ${userToken}`;
+
+        axios
+          .get("https://localhost:5001/User")
+          .then((res) => {
+            this.users = res.data;
+          })
+          .catch(function (error) {
+            console.log("[newsy-editor-viewer] ERROR");
+            if (error.response) {
+              console.log(error.response.data);
+              console.log(error.response.status);
+              console.log(error.response.headers);
+            } else if (error.request) {
+              console.log(error.request);
+            } else {
+              console.log(error.message);
+            }
+            console.log(error.config);
+          });
+      });
     },
 
     createNewArticle($value) {
@@ -134,46 +188,72 @@ export default {
         articleUser: articleUsers,
       };
 
-      axios
-        .post("https://localhost:5001/Article", param)
-        .then(() => {
-          this.getArticles();
-          this.$refs.articleUserComp.clearControls();
-          this.$refs.articleEditorComp.clearControls();
-        })
-        .catch(function (error) {
-          console.log("[newsy-editor-viewer] ERROR");
-          if (error.response) {
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
-          } else if (error.request) {
-            console.log(error.request);
-          } else {
-            console.log(error.message);
-          }
-          console.log(error.config);
-        });
+      this.getAccessToken().then((userToken) => {
+        axios.defaults.headers.common[
+          authorizationHeader
+        ] = `Bearer ${userToken}`;
+
+        axios
+          .post("https://localhost:5001/Article", param)
+          .then(() => {
+            this.getArticles();
+            this.$refs.articleUserComp.clearControls();
+            this.$refs.articleEditorComp.clearControls();
+          })
+          .catch(function (error) {
+            console.log("[newsy-editor-viewer] ERROR");
+            if (error.response) {
+              console.log(error.response.data);
+              console.log(error.response.status);
+              console.log(error.response.headers);
+            } else if (error.request) {
+              console.log(error.request);
+            } else {
+              console.log(error.message);
+            }
+            console.log(error.config);
+          });
+      });
     },
 
     selectedAuthorsChanged($value) {
       this.selectedUsers = $value;
     },
+
+    getUser() {
+      return this.userManager.getUser();
+    },
+
+    login() {
+      return this.userManager.signinRedirect();
+    },
+
+    logout() {
+      return this.userManager.signoutRedirect();
+    },
+
+    getAccessToken() {
+      return this.userManager.getUser().then((data) => {
+        return data.access_token;
+      });
+    },
   },
   provide() {
     return {
       createNewArticleProvide: this.createNewArticle,
-      selectedUsersChangedProvide: this.selectedAuthorsChanged
+      selectedUsersChangedProvide: this.selectedAuthorsChanged,
     };
-  }
+  },
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-#lblUser {
-  text-decoration: gray;
-  font-weight: bold;
+#mainContainer{
+  margin-top: 10px;
+}
+.login{
+  margin-right:10px;
 }
 h3 {
   margin: 40px 0 0;
