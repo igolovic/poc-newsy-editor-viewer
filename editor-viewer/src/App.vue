@@ -1,11 +1,11 @@
 <template>
   <b-container id="mainContainer">
-    <b-row class="w-100 float-right">
+    <b-row class="w-100">
         <b-button class="btn login" @click="login" v-if="!isLoggedIn">Login</b-button>
         <label v-if="!isLoggedIn">Log into the editor-viewer application</label>
 
         <b-button class="btn login" @click="logout" v-if="isLoggedIn">Logout</b-button>
-        <label v-if="isLoggedIn">{{ userText }}</label>
+        <label v-if="isLoggedIn">{{ userUserName }}</label>
 
     </b-row>
     <b-row class="w-100" v-if="isLoggedIn"
@@ -57,14 +57,14 @@ export default {
       accessTokenExpired: false,
       settings: {
         userStore: new WebStorageStateStore({ store: window.localStorage }),
-        authority: "http://host.docker.internal:44342/",
+        authority: "https://host.docker.internal:44343",
         client_id: "newsy-editor-viewer-application",
-        redirect_uri: "http://localhost:8080/callback.html",
+        redirect_uri: "https://localhost:8080/callback.html",
         automaticSilentRenew: true,
-        silent_redirect_uri: "http://localhost:8080/silent-renew.html",
+        silent_redirect_uri: "https://localhost:8080/silent-renew.html",
         response_type: "code",
         scope: "newsy-api.read newsy-api.write",
-        post_logout_redirect_uri: "http://localhost:8080/",
+        post_logout_redirect_uri: "https://localhost:8080/",
         filterProtocolClaims: true,
       },
     };
@@ -86,6 +86,10 @@ export default {
           this.getArticles();
         }
       }
+      else{
+        this.isLoggedIn = false;
+        this.accessTokenExpired = true;
+      }
     });
   },
   created: function () {
@@ -93,11 +97,6 @@ export default {
     this.userManager = new UserManager(this.settings);
   },
   computed: {
-    userText: function () {
-      return (
-        this.userFirstName + " " + this.userUserName 
-      );
-    },
   },
   watch: {},
   methods: {
