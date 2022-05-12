@@ -1,7 +1,11 @@
 # poc-newsy-editor-viewer
-Frontend SPA application in vue.js 2.6 using the bootstrap-vue for UI. Used for viewing and adding articles, this application is a frontend for web API at https://github.com/igolovic/poc-newsy.      
+Frontend SPA application in vue.js 2.6 using the bootstrap-vue for UI. This application is a partial frontend for web API at https://github.com/igolovic/poc-newsy.   
    
-**Functionality implemented in web API**
+**Functionality**   
+Used for viewing and adding articles.   
+      
+**Architecture**   
+Applicaiton is a SPA multi-component application followingn organization layed out by the Vue.js CLI.   
    
 **Prerequisites**  
 Vue.js 2.6 CLI   
@@ -11,7 +15,7 @@ poc-newsy IdentityServer4 on https://host.docker.internal:44343 (Docker)
 pg4admin PostgreSQL UI on http://localhost:5050/browser/ (Docker)
 PostgreSQL database (Docker)
 
-**Components**  
+**Components**   
 editor-viewer frontend web application on https://localhost:8080/
 
 **Development tools**   
@@ -23,9 +27,6 @@ Run the application using the "run npm serve" in VS Code to connect to web appli
 **Authentication and authorization**   
 These services are provided for the frontend client application by the npm package oidc-client which implements IdentityServer4/OpenID-Connect. User cannot use SPA application before successful login in a form provided by the IdentityServer4 custom server application on https://host.docker.internal:44343. API itself is protected by the same IdentityServer4 custom server application and cannot be accessed before login.
    
-**Architecture**   
-Applicaiton is a SPA multi-component application followingn organization layed out by the Vue.js CLI.
-
 **Installation**   
 - In VS Code get required modules and run using the npm serve on URL http://localhost:8080/
 
